@@ -932,16 +932,15 @@ abstract class ClassJobsSitePlugin extends ClassJobsSitePluginCommon
         $strCmdToRun = "osascript " . __ROOT__ . "/plugins/".$this->strFilePath_HTMLFileDownloadScript . " " . escapeshellarg($this->detailsMyFileOut["directory"])  . " ".escapeshellarg($searchDetails["site_name"])." " . escapeshellarg($strFileKey)   . " '"  . $strURL . "'";
         $GLOBALS['logger']->logLine("Command = " . $strCmdToRun, \Scooper\C__DISPLAY_ITEM_DETAIL__);
         $result = \Scooper\my_exec($strCmdToRun);
+
+        // log the resulting output from the script to the job_scooper log
+        $GLOBALS['logger']->logLine("stdout: " . $result['stdout'] . PHP_EOL . "stderr: " . $result['stderr'], \Scooper\C__DISPLAY_ITEM_DETAIL__);
+
         if(\Scooper\intceil($result['stdout']) == VALUE_NOT_SUPPORTED)
         {
             $strError = "AppleScript did not successfully download the jobs.  Log = ".$result['stderr'];
             $GLOBALS['logger']->logLine($strError, \Scooper\C__DISPLAY_ERROR__);
             throw new ErrorException($strError);
-        }
-        else
-        {
-            // log the resulting output from the script to the job_scooper log
-            $GLOBALS['logger']->logLine($result['stderr'], \Scooper\C__DISPLAY_ITEM_DETAIL__);
         }
 
         $strFileName = $strFileBase.".html";
@@ -949,27 +948,30 @@ abstract class ClassJobsSitePlugin extends ClassJobsSitePluginCommon
         while (file_exists($strFileName) && is_file($strFileName))
         {
             $GLOBALS['logger']->logLine("Parsing results HTML from '" . $strFileName ."'", \Scooper\C__DISPLAY_ITEM_DETAIL__);
-            $objSimpleHTML = $this->getSimpleHTMLObjForFileContents($strFileName);
-            if(!$objSimpleHTML)
-            {
-                throw new ErrorException('Error:  unable to get SimpleHTMLDom object from file('.$strFileName.').');
-            }
 
-            $arrPageJobsList = $this->parseJobsListForPage($objSimpleHTML);
+            $arrPageJobsList = $this->parseJobsForPageFromFile($strFileName);
 
+//            $objSimpleHTML = $this->getSimpleHTMLObjForFileContents($strFileName);
+//            if(!$objSimpleHTML)
+//            {
+//                throw new ErrorException('Error:  unable to get SimpleHTMLDom object from file('.$strFileName.').');
+//            }
+//
+//            $arrPageJobsList = $this->parseJobsListForPage($objSimpleHTML);
+//
+//
+//            $objSimpleHTML->clear();
+//            unset($objSimpleHTML);
+//            $objSimpleHTML = null;
+//
+//            //
+//            // If the user has not asked us to keep interim files around
+//            // after we're done processing, then delete the interim HTML file
+//            //
+//            if($this->is_OutputInterimFiles() != true) {
+//                unlink($strFileName);
+//            }
             addJobsToJobsList($arrSearchReturnedJobs, $arrPageJobsList);
-
-            $objSimpleHTML->clear();
-            unset($objSimpleHTML);
-            $objSimpleHTML = null;
-
-            //
-            // If the user has not asked us to keep interim files around
-            // after we're done processing, then delete the interim HTML file
-            //
-            if($this->is_OutputInterimFiles() != true) {
-                unlink($strFileName);
-            }
 
             $nPageCount++;
             $strFileName = $strFileBase.$nPageCount.".html";
@@ -987,6 +989,31 @@ abstract class ClassJobsSitePlugin extends ClassJobsSitePluginCommon
             $GLOBALS['logger']->logLine("0 jobs found for " . $strFileName, \Scooper\C__DISPLAY_ITEM_DETAIL__);
         }
 
+    }
+
+    protected function parseJobsForPageFromFile($strFileName)
+    {
+        $objSimpleHTML = $this->getSimpleHTMLObjForFileContents($strFileName);
+        if(!$objSimpleHTML)
+        {
+            throw new ErrorException('Error:  unable to get SimpleHTMLDom object from file('.$strFileName.').');
+        }
+
+        $retReturnedJobs = $this->parseJobsListForPage($objSimpleHTML);
+
+        $objSimpleHTML->clear();
+        unset($objSimpleHTML);
+        $objSimpleHTML = null;
+
+        //
+        // If the user has not asked us to keep interim files around
+        // after we're done processing, then delete the interim HTML file
+        //
+        if($this->is_OutputInterimFiles() != true) {
+            unlink($strFileName);
+        }
+
+        return $retReturnedJobs;
     }
 
     /*

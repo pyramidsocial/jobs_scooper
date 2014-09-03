@@ -48,7 +48,7 @@ require_once (__ROOT__.'/plugins/PluginFacebook.php');
 require_once (__ROOT__.'/plugins/PluginEbay.php');
 require_once (__ROOT__.'/plugins/PluginGroupon.php');
 require_once (__ROOT__.'/plugins/PluginGeekwire.php');
-require_once (__ROOT__.'/plugins/PluginDotJobs.php');
+require_once (__ROOT__.'/plugins/PluginUSJobs.php');
 require_once (__ROOT__.'/plugins/PluginZipRecruiter.php');
 require_once (__ROOT__.'/plugins/PluginStartupHire.php');
 
@@ -58,7 +58,6 @@ const C__JOB_SEARCH_RESULTS_TYPE_NONE__ = 0x1;
 const C__JOB_SEARCH_RESULTS_TYPE_WEBPAGE__ = 0x2;
 const C__JOB_SEARCH_RESULTS_TYPE_XML__= 0x4;
 const C__JOB_SEARCH_RESULTS_TYPE_HTML_FILE__ = 0x8;
-const C__JOB_NONE = 0x10;
 
 const C__JOB_PAGECOUNT_NOTAPPLICABLE__= 0x100;
 const C__JOB_DAYS_VALUE_NOTAPPLICABLE__ = 0x200;
